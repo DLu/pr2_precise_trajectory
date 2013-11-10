@@ -106,7 +106,7 @@ class FullPr2Controller:
                 for client in clients:
                     client.wait_for_result()
                 self.service_flag = False
-                while self.service_flag == True:
+                while self.service_flag == False and not rospy.is_shutdown():
                     rospy.sleep(.1)
 
 
@@ -116,7 +116,7 @@ class FullPr2Controller:
             self.arms[arm].start_trajectory(trajectory, wait=False)
         rospy.sleep(time)
 
-    def service_call(self, req, resp):
+    def service_call(self, x):
         self.service_flag = True
 
 
