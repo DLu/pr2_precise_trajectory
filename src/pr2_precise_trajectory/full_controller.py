@@ -106,7 +106,7 @@ class FullPr2Controller:
                 for client in clients:
                     client.wait_for_result()
                 self.service_flag = False
-                while self.service_flag = True:
+                while self.service_flag == True:
                     rospy.sleep(.1)
 
 
