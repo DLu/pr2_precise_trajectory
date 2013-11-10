@@ -6,6 +6,7 @@ BASE = 'b'
 TIME = 't'
 LEFT_HAND = 'lh'
 RIGHT_HAND = 'rh'
+MACRO = 'm'
 
 DEFAULT_TIME = 3.0
 

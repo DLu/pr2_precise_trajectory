@@ -9,6 +9,7 @@ from pr2_precise_trajectory.impact_watcher import *
 from pr2_precise_trajectory.joint_watcher import *
 from pr2_precise_trajectory.converter import *
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from std_srvs.srv import Empty
 
 def transition_split(movements):
     first = movements[0]
@@ -26,7 +27,7 @@ def transition_split(movements):
     
 
 class FullPr2Controller:
-    def __init__(self, keys=[LEFT, RIGHT, HEAD, BASE, LEFT_HAND, RIGHT_HAND], impact=True):
+    def __init__(self, keys=[LEFT, RIGHT, HEAD, BASE, LEFT_HAND, RIGHT_HAND], impact=True, service=True):
         self.keys = keys
         self.arms = {}
 
@@ -52,6 +53,11 @@ class FullPr2Controller:
 
         self.impacts = ImpactWatcher(['%s_gripper_sensor_controller'%arm for arm in self.arms.keys()]) if impact else None
         self.joint_watcher = JointWatcher(joint_map)
+
+        if service:
+            self.service = rospy.Service('/proceed', Empty, self.service_call)
+        else:
+            self.service = None
 
         if BASE in keys:
             self.base = BaseController()
@@ -96,11 +102,21 @@ class FullPr2Controller:
                 rospy.sleep(.1)
                 self.impacts.wait_for_impact()
                 self.stop_arm()
+            elif transition=='service':
+                for client in clients:
+                    client.wait_for_result()
+                self.service_flag = False
+                while self.service_flag = True:
+                    rospy.sleep(.1)
+
 
     def stop_arm(self, time=0.1):
         for arm in self.arms:
             trajectory = simple_to_message_single(self.joint_watcher.get_positions(arm), time, arm)
             self.arms[arm].start_trajectory(trajectory, wait=False)
         rospy.sleep(time)
+
+    def service_call(self, req, resp):
+        self.service_flag = True
 
 
