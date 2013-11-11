@@ -105,9 +105,11 @@ class FullPr2Controller:
             elif transition=='service':
                 for client in clients:
                     client.wait_for_result()
+                rospy.loginfo('Waiting for service')
                 self.service_flag = False
                 while self.service_flag == False and not rospy.is_shutdown():
                     rospy.sleep(.1)
+                rospy.loginfo("Done")
 
 
     def stop_arm(self, time=0.1):
