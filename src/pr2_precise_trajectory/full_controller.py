@@ -9,7 +9,7 @@ from pr2_precise_trajectory.impact_watcher import *
 from pr2_precise_trajectory.joint_watcher import *
 from pr2_precise_trajectory.converter import *
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from std_srvs.srv import Empty
+from std_srvs.srv import Empty, EmptyResponse
 
 def transition_split(movements):
     first = movements[0]
@@ -120,5 +120,5 @@ class FullPr2Controller:
 
     def service_call(self, x):
         self.service_flag = True
-
+        return EmptyResponse()
 
