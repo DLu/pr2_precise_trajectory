@@ -1,19 +1,29 @@
 import roslib; roslib.load_manifest('pr2_precise_trajectory')
 import rospy
 from trajectory_msgs.msg import JointTrajectory,JointTrajectoryPoint
-from pr2_controllers_msgs.msg import JointTrajectoryGoal, JointTrajectoryAction
-from actionlib import SimpleActionClient, SimpleGoalState
+from pr2_controllers_msgs.msg import *
+from actionlib import SimpleActionClient, SimpleGoalState, SimpleActionServer
+
 import trajectory_msgs.msg
 
 HEAD_JOINTS = ['head_pan_joint', 'head_tilt_joint']
+ACTION_NAME = '/head_controller/head_sequence'
 
 class HeadController:
     def __init__(self):
-        self.client = SimpleActionClient('/head_traj_controller/joint_trajectory_action', JointTrajectoryAction)
+        self.angle_client = SimpleActionClient('/head_traj_controller/joint_trajectory_action', JointTrajectoryAction)
+        self.point_client = SimpleActionClient('/head_traj_controller/point_head_action', PointHeadAction)
         #wait for the action servers to come up 
         rospy.loginfo("[HEAD] Waiting for controller")
-        self.client.wait_for_server()
+        self.angle_client.wait_for_server()
+        self.point_client.wait_for_server()
         rospy.loginfo("[HEAD] Got controller")
+
+        self.server = actionlib.SimpleActionServer(ACTION_NAME, HeadSequenceAction, self.execute, False) 
+        self.server.start()
+
+        self.client = SimpleActionClient(ACTION_NAME, HeadSequenceAction)
+        self.client.wait_for_server()
 
     def start_trajectory(self, trajectory, set_time_stamp=True, wait=True):
         """Creates an action from the trajectory and sends it to the server"""
@@ -21,14 +31,44 @@ class HeadController:
         goal.trajectory = trajectory
         if set_time_stamp:
             goal.trajectory.header.stamp = rospy.Time.now()
-        self.client.send_goal(goal)
+        self.angle_client.send_goal(goal)
 
         if wait:
             self.wait()
 
+    def execute(self, goal):
+        r = rospy.Rate(100)
+
+        # wait to start
+        while rospy.Time.now() < goal.header.stamp:
+            r.sleep()
+
+        start_time = goal.header.stamp
+        for mode, pan, tilt, frame, time in zip(goal.modes, goal.pans, goal.tilts, goal.frames, goal.times):
+            if mode == 0:
+                jgoal = JointTrajectoryGoal()
+                jgoal.trajectory.header = start_time
+                jgoal.trajectory.joint_names = HEAD_JOINTS
+                pt = JointTrajectoryPoint()
+                pt.positions = [pan, tilt]
+                pt.time_from_start = rospy.Duration(time)
+                jgoal.trajectory.points.append(pt)
+                self.angle_client.send_goal(goal)
+                self.angle_client.wait()
+            else:
+                pgoal = PointHeadGoal()
+                pgoal.pointing_frame = '/head_tilt_link'
+                g.target.frame_id = frame
+                g.target.stamp = start_time
+                g.min_duration = rospy.Duration(time) #self.rate.sleep_dur * dist * self.SPEED_SCALE
+                self.point_client.send_goal(g)
+                self.point_client.wait()
+            
+            start_time += rospy.Duration(time)
+
     def wait(self):
-        self.client.wait_for_result()
+        self.angle_client.wait_for_result()
 
     def is_done(self):
-        return self.client.get_state() > SimpleGoalState.ACTIVE
+        return self.angle_client.get_state() > SimpleGoalState.ACTIVE
 

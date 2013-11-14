@@ -1,0 +1,10 @@
+int8 JOINT=0
+int8 POINT=1
+Header header
+int8[] mode
+float32[] pans
+float32[] tilts
+string[] frames
+float32[] times
+---
+---
