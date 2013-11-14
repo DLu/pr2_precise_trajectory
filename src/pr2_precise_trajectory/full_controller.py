@@ -94,6 +94,10 @@ class FullPr2Controller:
                 elif key==AUDIO:
                     self.audio.send_goal(sub)
                     clients.append(self.audio.client)
+                elif key==HEAD:
+                    seq = simple_to_head_sequence(sub)
+                    self.head.client.send_goal(seq)
+                    clients.append(self.head.client)
                 else:
                     traj = simple_to_message(sub, key)
                     if key in self.arms:

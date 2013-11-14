@@ -3,6 +3,7 @@ import rospy
 from trajectory_msgs.msg import JointTrajectory,JointTrajectoryPoint
 from pr2_controllers_msgs.msg import *
 from actionlib import SimpleActionClient, SimpleGoalState, SimpleActionServer
+from pr2_precise_trajectory.msg import HeadSequenceAction
 
 import trajectory_msgs.msg
 
@@ -19,7 +20,7 @@ class HeadController:
         self.point_client.wait_for_server()
         rospy.loginfo("[HEAD] Got controller")
 
-        self.server = actionlib.SimpleActionServer(ACTION_NAME, HeadSequenceAction, self.execute, False) 
+        self.server = SimpleActionServer(ACTION_NAME, HeadSequenceAction, self.execute, False) 
         self.server.start()
 
         self.client = SimpleActionClient(ACTION_NAME, HeadSequenceAction)
@@ -44,27 +45,28 @@ class HeadController:
             r.sleep()
 
         start_time = goal.header.stamp
-        for mode, pan, tilt, frame, time in zip(goal.modes, goal.pans, goal.tilts, goal.frames, goal.times):
+        for mode, pan, tilt, frame, time in zip(goal.mode, goal.pans, goal.tilts, goal.frames, goal.times):
             if mode == 0:
                 jgoal = JointTrajectoryGoal()
-                jgoal.trajectory.header = start_time
+                jgoal.trajectory.header.stamp = start_time
                 jgoal.trajectory.joint_names = HEAD_JOINTS
                 pt = JointTrajectoryPoint()
                 pt.positions = [pan, tilt]
                 pt.time_from_start = rospy.Duration(time)
                 jgoal.trajectory.points.append(pt)
-                self.angle_client.send_goal(goal)
-                self.angle_client.wait()
+                self.angle_client.send_goal(jgoal)
+                self.angle_client.wait_for_result()
             else:
                 pgoal = PointHeadGoal()
                 pgoal.pointing_frame = '/head_tilt_link'
-                g.target.frame_id = frame
-                g.target.stamp = start_time
-                g.min_duration = rospy.Duration(time) #self.rate.sleep_dur * dist * self.SPEED_SCALE
-                self.point_client.send_goal(g)
-                self.point_client.wait()
+                pgoal.target.header.frame_id = frame
+                pgoal.target.header.stamp = start_time
+                pgoal.min_duration = rospy.Duration(time) #self.rate.sleep_dur * dist * self.SPEED_SCALE
+                self.point_client.send_goal(pgoal)
+                self.point_client.wait_for_result()
             
             start_time += rospy.Duration(time)
+        self.server.set_succeeded()
 
     def wait(self):
         self.angle_client.wait_for_result()

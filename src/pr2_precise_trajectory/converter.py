@@ -69,6 +69,24 @@ def simple_to_move_sequence(movements, frame="/map", now=None, delay=0.0):
     nav_goal.header.stamp = now + rospy.Duration(delay)
     return nav_goal
 
+def simple_to_head_sequence(movements):
+    goal = HeadSequenceGoal()
+    for move in precise_subset(movements, HEAD):
+        if type(move[HEAD])==str:
+            goal.mode.append(1)
+            goal.frames.append(move[HEAD])
+            goal.pans.append(0)
+            goal.tilts.append(0)
+            goal.times.append( get_time(move) )
+        else:
+            goal.mode.append(0)
+            goal.frames.append('')
+            goal.pans.append( move[HEAD][0] )
+            goal.tilts.append( move[HEAD][1] )
+            goal.times.append( get_time(move) )
+    goal.header.stamp = rospy.Time.now()
+    return goal
+
 def simple_to_gripper_sequence(movements, hand, now=None):
     goal = GripperSequenceGoal()
     for move in precise_subset(movements, hand):
