@@ -7,20 +7,25 @@ TIME = 't'
 LEFT_HAND = 'lh'
 RIGHT_HAND = 'rh'
 MACRO = 'm'
+AUDIO = 'a'
 
 DEFAULT_TIME = 3.0
 
 def get_time(move):
     return move.get(TIME, DEFAULT_TIME)
 
-def precise_subset(movements, key):
+def precise_subset(movements, key, end_time=True):
     t = 0.0
     L = []
     for move in movements:
         if key in move:
-            m = {key: move[key], TIME: get_time(move) + t }
+            if end_time:
+                m = {key: move[key], TIME: get_time(move) + t }
+                t = 0.0
+            else:
+                m = {key: move[key], TIME: t}
+                t = get_time(move)
             L.append(m)
-            t = 0.0
         else:
             t += get_time(move)
     return L

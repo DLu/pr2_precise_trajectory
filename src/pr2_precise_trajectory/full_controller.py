@@ -7,6 +7,7 @@ from pr2_precise_trajectory.base_controller import *
 from pr2_precise_trajectory.head_controller import *
 from pr2_precise_trajectory.impact_watcher import *
 from pr2_precise_trajectory.joint_watcher import *
+from pr2_precise_trajectory.audio_controller import *
 from pr2_precise_trajectory.converter import *
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from std_srvs.srv import Empty, EmptyResponse
@@ -65,6 +66,11 @@ class FullPr2Controller:
         else:
             self.base = None
 
+        if AUDIO in keys:
+            self.audio = AudioController()
+        else:
+            self.audio = none
+
     def do_action(self, movements):
         if len(movements)==0:
             return
@@ -74,7 +80,7 @@ class FullPr2Controller:
         for ms in chunks:
             clients = []
             for key in self.keys:
-                sub = precise_subset(ms, key)
+                sub = precise_subset(ms, key, key!=AUDIO)
                 if len(sub)==0:
                     continue
                 if key==BASE:
@@ -85,6 +91,9 @@ class FullPr2Controller:
                     seq = simple_to_gripper_sequence(sub, key)
                     self.hands[key].send_goal(seq)
                     clients.append(self.hands[key].client)
+                elif key==AUDIO:
+                    self.audio.send_goal(sub)
+                    clients.append(self.audio.client)
                 else:
                     traj = simple_to_message(sub, key)
                     if key in self.arms:
