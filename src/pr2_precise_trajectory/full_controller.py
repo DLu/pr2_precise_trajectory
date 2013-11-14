@@ -5,6 +5,7 @@ from pr2_precise_trajectory.arm_controller import *
 from pr2_precise_trajectory.gripper_controller import *
 from pr2_precise_trajectory.base_controller import *
 from pr2_precise_trajectory.head_controller import *
+from pr2_precise_trajectory.point_head_controller import *
 from pr2_precise_trajectory.impact_watcher import *
 from pr2_precise_trajectory.joint_watcher import *
 from pr2_precise_trajectory.audio_controller import *
