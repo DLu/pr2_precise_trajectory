@@ -57,13 +57,16 @@ class HeadController:
                 self.angle_client.send_goal(jgoal)
                 self.angle_client.wait_for_result()
             else:
-                pgoal = PointHeadGoal()
-                pgoal.pointing_frame = '/head_tilt_link'
-                pgoal.target.header.frame_id = frame
-                pgoal.target.header.stamp = start_time
-                pgoal.min_duration = rospy.Duration(time) #self.rate.sleep_dur * dist * self.SPEED_SCALE
-                self.point_client.send_goal(pgoal)
-                self.point_client.wait_for_result()
+                rate = rospy.Rate(10)
+                while rospy.Time.now() < start_time + rospy.Duration(time) and not rospy.is_shutdown():
+                    pgoal = PointHeadGoal()
+                    pgoal.pointing_frame = '/head_tilt_link'
+                    pgoal.target.header.frame_id = frame
+                    pgoal.target.header.stamp = rospy.Time.now()
+                    pgoal.min_duration = rospy.Duration(.1) #rospy.Duration(time) #self.rate.sleep_dur * dist * self.SPEED_SCALE
+                    self.point_client.send_goal(pgoal)
+                    rate.sleep()
+                    
             
             start_time += rospy.Duration(time)
         self.server.set_succeeded()
