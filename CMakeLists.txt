@@ -20,7 +20,7 @@ add_action_files(
   GripperSequence.action
   MoveSequence.action
 )
-
+catkin_python_setup()
 
 generate_messages(DEPENDENCIES std_msgs actionlib_msgs geometry_msgs)
 
