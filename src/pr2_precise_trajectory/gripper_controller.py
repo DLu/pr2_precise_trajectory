@@ -41,7 +41,7 @@ class GripperController:
             self.change_position(position, False)
             rospy.sleep( time ) 
         self.server.set_succeeded(GripperSequenceResult())
-        self.change_position(position, False, 0.0)
+        #self.change_position(position, False, 0.0)
         
 
     def change_position(self, position, should_wait=True, effort=None):
