@@ -9,6 +9,7 @@ from pr2_precise_trajectory.impact_watcher import *
 from pr2_precise_trajectory.joint_watcher import *
 from pr2_precise_trajectory.audio_controller import *
 from pr2_precise_trajectory.converter import *
+from pr2_precise_trajectory.wc_controller import *
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from std_srvs.srv import Empty, EmptyResponse
 
@@ -28,7 +29,7 @@ def transition_split(movements):
     
 
 class FullPr2Controller:
-    def __init__(self, keys=[LEFT, RIGHT, HEAD, BASE, LEFT_HAND, RIGHT_HAND], impact=True, service=True):
+    def __init__(self, keys=[LEFT, RIGHT, HEAD, BASE, LEFT_HAND, RIGHT_HAND, WHEELCHAIR], impact=True, service=True):
         self.keys = keys
         self.arms = {}
 
@@ -71,6 +72,11 @@ class FullPr2Controller:
         else:
             self.audio = None
 
+        if WHEELCHAIR in keys:
+            self.wheelchair = WheelchairController()
+        else:
+            self.wheelchair = None        
+
     def do_action(self, movements):
         if len(movements)==0:
             return
@@ -87,6 +93,10 @@ class FullPr2Controller:
                     seq = simple_to_move_sequence(sub)
                     self.base.send_goal(seq)
                     clients.append(self.base.client)
+                elif key==WHEELCHAIR:    
+                    seq = simple_to_move_sequence(sub)
+                    self.wheelchair.send_goal(seq)
+                    clients.append(self.wheelchair.client)
                 elif key==LEFT_HAND or key==RIGHT_HAND:
                     seq = simple_to_gripper_sequence(sub, key)
                     self.hands[key].send_goal(seq)

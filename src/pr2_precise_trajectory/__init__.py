@@ -9,6 +9,8 @@ RIGHT_HAND = 'rh'
 MACRO = 'm'
 AUDIO = 'a'
 
+WHEELCHAIR = 'w'
+
 DEFAULT_TIME = 3.0
 
 def get_time(move):
