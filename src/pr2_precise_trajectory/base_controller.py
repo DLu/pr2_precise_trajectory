@@ -39,17 +39,14 @@ class BaseController:
         r = rospy.Rate(100)
 
         # wait to start
-        while rospy.Time.now() < goal.header.stamp:
+        while rospy.Time.now() < goal.start:
             r.sleep()
 
         feedback = MoveSequenceFeedback()
-        t_prev = goal.header.stamp
-        for pose, time in zip(goal.poses, goal.times):
+        t_prev = goal.start
+        for goal_pose, time in zip(goal.poses, goal.times):
             goal_time = t_prev + rospy.Duration(time)
             t_prev = goal_time
-            goal_pose = PoseStamped()
-            goal_pose.header.frame_id = goal.header.frame_id
-            goal_pose.pose = pose
 
             while rospy.Time.now() <= goal_time:
                 try:

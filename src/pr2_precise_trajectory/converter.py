@@ -3,7 +3,7 @@ from pr2_precise_trajectory import *
 from pr2_precise_trajectory.arm_controller import get_arm_joint_names
 from pr2_precise_trajectory.head_controller import HEAD_JOINTS
 from pr2_precise_trajectory.msg import *
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, PoseStamped
 from tf.transformations import quaternion_from_euler
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
@@ -50,7 +50,6 @@ def simple_to_message(movements, key):
 
 def simple_to_move_sequence(movements, frame="/map", now=None, delay=0.0):
     nav_goal = MoveSequenceGoal()
-    nav_goal.header.frame_id = frame
     for move in precise_subset(movements, BASE):
         t = get_time(move)
         pose = move[BASE]
@@ -63,10 +62,18 @@ def simple_to_move_sequence(movements, frame="/map", now=None, delay=0.0):
         p.orientation.y = q[1]
         p.orientation.z = q[2]
         p.orientation.w = q[3]
-        nav_goal.poses.append(p)
+
+        ps = PoseStamped()
+        ps.pose = p
+        if len(pose)>3:
+            ps.header.frame_id = pose[3]
+        else:
+            ps.header.frame_id = frame
+        
+        nav_goal.poses.append(ps)
     if now is None:
         now = rospy.Time.now()
-    nav_goal.header.stamp = now + rospy.Duration(delay)
+    nav_goal.start = now + rospy.Duration(delay)
     return nav_goal
 
 def simple_to_head_sequence(movements):

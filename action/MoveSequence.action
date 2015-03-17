@@ -1,5 +1,5 @@
-Header header
-geometry_msgs/Pose[] poses
+time start
+geometry_msgs/PoseStamped[] poses
 float32[] times
 ---
 ---
