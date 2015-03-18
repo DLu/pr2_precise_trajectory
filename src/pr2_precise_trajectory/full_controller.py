@@ -20,7 +20,7 @@ def transition_split(movements):
     
     for move in movements[1:]:
         transition = move.get('transition', 'wait')
-        if transition==last_transition and transition=='wait':
+        if transition==last_transition and (transition=='wait' or 'loop' in transition):
             chunks[-1].append(move)
         else:
             last_transition = transition
@@ -84,8 +84,12 @@ class FullPr2Controller:
             return
 
         chunks = transition_split(movements)
-
-        for ms in chunks:
+        
+        i = 0
+        looping = None
+        
+        while i < len(chunks):
+            ms = chunks[i]
             clients = []
             for key in self.keys:
                 sub = precise_subset(ms, key, key!=AUDIO)
@@ -142,7 +146,19 @@ class FullPr2Controller:
                 while self.service_flag == False and not rospy.is_shutdown():
                     rospy.sleep(.1)
                 rospy.loginfo("Done")
+            elif 'loop' in transition:
+                if looping is None:
+                    looping = transition
+                    self.service_flag = False
+                for client in clients:
+                    client.wait_for_result()
+                if self.service_flag:
+                    looping = None
+                else:
+                    i-=1
 
+            
+            i += 1
 
     def stop_arm(self, time=0.1):
         for arm in self.arms:
