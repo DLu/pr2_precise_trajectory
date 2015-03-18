@@ -33,6 +33,8 @@ class FullPr2Controller:
         self.keys = keys
         self.arms = {}
 
+        self.tf = tf.TransformListener()
+
         joint_map = {}
         for arm in [LEFT, RIGHT]:
             if arm not in keys:
@@ -62,8 +64,8 @@ class FullPr2Controller:
             self.service = None
 
         if BASE in keys:
-            self.base = BaseController()
-            self.joint_watcher.add_tf(self.base.tf)
+            self.base = BaseController(self.tf)
+            self.joint_watcher.add_tf(self.tf)
         else:
             self.base = None
 
@@ -73,7 +75,7 @@ class FullPr2Controller:
             self.audio = None
 
         if WHEELCHAIR in keys:
-            self.wheelchair = WheelchairController()
+            self.wheelchair = WheelchairController(self.tf)
         else:
             self.wheelchair = None        
 
@@ -94,7 +96,7 @@ class FullPr2Controller:
                     self.base.send_goal(seq)
                     clients.append(self.base.client)
                 elif key==WHEELCHAIR:    
-                    seq = simple_to_move_sequence(sub)
+                    seq = simple_to_move_sequence(sub, key=WHEELCHAIR)
                     self.wheelchair.send_goal(seq)
                     clients.append(self.wheelchair.client)
                 elif key==LEFT_HAND or key==RIGHT_HAND:
@@ -116,6 +118,13 @@ class FullPr2Controller:
                     elif key==HEAD:
                         self.head.start_trajectory(traj, wait=False)
                         clients.append(self.head.client)
+
+            services = ms[0].get('services', [])
+            for srv in services:
+                rospy.loginfo(' looking for %s'%srv)
+                rospy.wait_for_service(srv)
+                client = rospy.ServiceProxy(srv, Empty)
+                client()
 
             transition = ms[0].get('transition', 'wait')
             if transition=='wait':

@@ -48,11 +48,11 @@ def simple_to_message(movements, key):
         trajectory.points.append(pt)
     return trajectory
 
-def simple_to_move_sequence(movements, frame="/map", now=None, delay=0.0):
+def simple_to_move_sequence(movements, frame="/map", now=None, delay=0.0, key=BASE):
     nav_goal = MoveSequenceGoal()
-    for move in precise_subset(movements, BASE):
+    for move in precise_subset(movements, key):
         t = get_time(move)
-        pose = move[BASE]
+        pose = move[key]
         nav_goal.times.append(t-delay)
         p = Pose()
         p.position.x = pose[0]

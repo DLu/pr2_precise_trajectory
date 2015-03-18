@@ -13,9 +13,12 @@ def orientation_to_euler(orientation):
 ACTION_NAME = '/base_controller/move_sequence'
 
 class BaseController:
-    def __init__(self):
+    def __init__(self, tfx=None):
         self.cmd_pub = rospy.Publisher('/base_controller/command', Twist)
-        self.tf = tf.TransformListener()
+        if tfx is None:
+            self.tf = tf.TransformListener()
+        else:
+            self.tf = tfx
         self.server = actionlib.SimpleActionServer(ACTION_NAME, MoveSequenceAction, self.execute, False) 
         self.server.start()
 
@@ -60,10 +63,13 @@ class BaseController:
                 dz = rot[2]
 
                 t = (goal_time - rospy.Time.now()).to_sec()
-                if t < .1:
+                c = 1.0
+                #print "%.3f %+.5f %+.5f %+.5f"%(t, dx, dy, dz),
+
+                if t < 1.0:
                     t = 1.0
 
-                self.publish_command( dx / t, dy / t, dz / t )
+                self.publish_command( c*dx / t, c*dy / t, c*dz / t )
 
                 feedback.percent_complete = t / time
                 self.server.publish_feedback(feedback)
@@ -73,6 +79,7 @@ class BaseController:
         self.server.set_succeeded(MoveSequenceResult())
 
     def publish_command(self, dx, dy, dz):
+        #print "%+.4f %+.4f %+.4f"%(dx, dy, dz)
         cmd = Twist()
         cmd.linear.x = dx
         cmd.linear.y = dy

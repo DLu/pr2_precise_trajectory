@@ -13,17 +13,21 @@ def orientation_to_euler(orientation):
 ACTION_NAME = '/wc_controller/move_sequence'
 
 class WheelchairController:
-    def __init__(self):
+    def __init__(self, tfx=None):
         self.cmd_pub = rospy.Publisher('/base_controller/command', Twist)
-        self.tf = tf.TransformListener()
+        if tfx is None:
+            self.tf = tf.TransformListener()
+        else:
+            self.tf = tfx
+
         self.server = actionlib.SimpleActionServer(ACTION_NAME, MoveSequenceAction, self.execute, False) 
         self.server.start()
 
         self.client = actionlib.SimpleActionClient(ACTION_NAME, MoveSequenceAction)
-        rospy.loginfo("[BASE] Waiting for %s..."%ACTION_NAME)
+        rospy.loginfo("[WC] Waiting for %s..."%ACTION_NAME)
         self.client.wait_for_server()
 
-        self.offset = rospy.get_para('offset', 1.0)
+        self.offset = rospy.get_param('offset', 0.8)
         self.frame = rospy.get_param('frame_id', '/base_footprint')
         self.tlim = rospy.get_param('translation_speed_limit', 1.2)
         self.rlim = rospy.get_param('rotation_speed_limit', 1.4)
