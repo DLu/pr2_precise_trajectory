@@ -12,5 +12,7 @@ if __name__ == '__main__':
     movements = load_trajectory(sys.argv[1])
     controller = FullPr2Controller()
     controller.do_action(movements)
+
+    print "Completely done"
     rospy.spin()
 
