@@ -10,6 +10,21 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 import pickle
 import yaml
 import rospy
+from math import pi
+
+def angle_diff(a, b):
+    d = a - b
+    return (d + pi) % (2 * pi) - pi
+
+def closest_equivalent_angle(target, angle):
+    d = angle_diff(angle, target)
+    return target + d
+
+def closest_equivalent_angles(targets, angles):
+    if targets is None:
+        return angles
+    else:
+        return [closest_equivalent_angle(t,a) for t,a in zip(targets, angles)]            
 
 def load_trajectory(filename):
     if ".traj" in filename:
@@ -39,9 +54,11 @@ def simple_to_message(movements, key):
         trajectory.joint_names = get_arm_joint_names(key)
     trajectory.header.stamp = rospy.Time.now()
     t=0
+    prev = None
     for move in precise_subset(movements, key):
         pt = JointTrajectoryPoint()
-        pt.positions = move[key]
+        pt.positions = closest_equivalent_angles(prev, move[key])
+        prev = pt.positions
         t+= get_time(move)
         pt.time_from_start = rospy.Duration(t)
         #pt.velocities = [0.0]*7
