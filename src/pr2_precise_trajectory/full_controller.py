@@ -29,7 +29,7 @@ def transition_split(movements):
     
 
 class FullPr2Controller:
-    def __init__(self, keys=[LEFT, RIGHT, HEAD, BASE, LEFT_HAND, RIGHT_HAND, WHEELCHAIR], impact=True, service=True):
+    def __init__(self, keys=[LEFT, RIGHT, HEAD, BASE, LEFT_HAND, RIGHT_HAND, WHEELCHAIR], impact=True, service=True, mux_it=False):
         self.keys = keys
         self.arms = {}
 
@@ -64,7 +64,7 @@ class FullPr2Controller:
             self.service = None
 
         if BASE in keys:
-            self.base = BaseController(self.tf)
+            self.base = BaseController(self.tf, mux_it)
             self.joint_watcher.add_tf(self.tf)
         else:
             self.base = None
@@ -75,7 +75,7 @@ class FullPr2Controller:
             self.audio = None
 
         if WHEELCHAIR in keys:
-            self.wheelchair = WheelchairController(self.tf)
+            self.wheelchair = WheelchairController(self.tf, mux_it)
         else:
             self.wheelchair = None        
 

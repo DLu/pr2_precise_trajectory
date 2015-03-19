@@ -13,8 +13,11 @@ def orientation_to_euler(orientation):
 ACTION_NAME = '/wc_controller/move_sequence'
 
 class WheelchairController:
-    def __init__(self, tfx=None):
-        self.cmd_pub = rospy.Publisher('/base_controller/command', Twist)
+    def __init__(self, tfx=None, mux_it=False):
+        topic = '/base_controller/command'
+        if mux_it:
+            topic += '_wc'
+        self.cmd_pub = rospy.Publisher(topic, Twist)
         if tfx is None:
             self.tf = tf.TransformListener()
         else:

@@ -10,7 +10,9 @@ if __name__ == '__main__':
     rospy.init_node('perform_trajectory')
 
     movements = load_trajectory(sys.argv[1])
-    controller = FullPr2Controller()
+    mux = '-m' in sys.argv:
+        
+    controller = FullPr2Controller(mux_it = mux)
     controller.do_action(movements)
 
     print "Completely done"

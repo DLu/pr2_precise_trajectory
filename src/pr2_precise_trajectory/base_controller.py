@@ -13,8 +13,11 @@ def orientation_to_euler(orientation):
 ACTION_NAME = '/base_controller/move_sequence'
 
 class BaseController:
-    def __init__(self, tfx=None):
-        self.cmd_pub = rospy.Publisher('/base_controller/command', Twist)
+    def __init__(self, tfx=None, mux_it=False):
+        topic = '/base_controller/command'
+        if mux_it:
+            topic += '_bc'
+        self.cmd_pub = rospy.Publisher(topic, Twist)
         if tfx is None:
             self.tf = tf.TransformListener()
         else:
