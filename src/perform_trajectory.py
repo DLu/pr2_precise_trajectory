@@ -10,7 +10,20 @@ if __name__ == '__main__':
     rospy.init_node('perform_trajectory')
 
     movements = load_trajectory(sys.argv[1])
-    mux = '-m' in sys.argv:
+    if len(sys.argv)>2:
+        for arg in sys.argv[2:]:
+            arg = sys.argv[2]
+            if arg[0]=='-':
+                continue
+
+            for i, m in enumerate(movements):
+                if 'label' not in m:
+                    continue
+                label = m['label']
+                if label==arg:
+                    movements = movements[i:]
+                    break
+    mux = '-m' in sys.argv
         
     controller = FullPr2Controller(mux_it = mux)
     controller.do_action(movements)
